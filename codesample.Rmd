@@ -1,0 +1,114 @@
+---
+title: "Code Sample"
+author: "Eleonora Minaeva"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, include=FALSE}
+
+```
+
+```{r}
+#### Figure 1 ####
+
+
+
+
+reg <- vdem %>% 
+  group_by(year, Regime) %>%  
+  mutate("share" = n_distinct(country_name[v2elsrgel == c("2","5")])/n_distinct(country_name)) %>%
+  ggplot(aes(x=year, y = share, group = Regime))+
+  geom_line(aes(y = share, linetype = Regime), lwd=1) +
+  labs(title="Regional Level")+
+  xlab("Years") +
+  ylab("Share")+
+  scale_y_continuous(limits = c(0, 0.65), labels = scales::percent)+
+  scale_x_continuous(limits = c(1975, 2021), 
+                     breaks = c(1980, 1990, 2000, 2010, 2020))+
+  theme_minimal()+
+  theme(title = element_text(size=12),
+        axis.text=element_text(size=11),
+        axis.title=element_text(size=10),
+        legend.position = "none",
+        text = element_text(size=13, family="LM Roman 10")
+  )
+
+
+
+loc = vdem %>% 
+  group_by(year, Regime) %>%  
+  mutate("share" = n_distinct(country_name[v2ellocelc == c("2","5")])/n_distinct(country_name)) %>%
+  ggplot(aes(x=year, y = share, group = Regime))+
+  geom_line(aes(y = share, linetype = Regime), lwd=1) +
+  labs(title="Local Level")+
+  xlab("Years") +
+  ylab("Share")+
+  scale_y_continuous(limits = c(0, 0.65), labels = scales::percent)+
+  scale_x_continuous(limits = c(1975, 2021), 
+                     breaks = c(1980, 1990, 2000, 2010, 2020))+
+  theme_minimal()+
+  theme(title = element_text(size=12),
+        axis.text=element_text(size=11),
+        axis.title=element_text(size=10),
+        legend.position = c(0.7, 0.2),
+        legend.title=element_blank(),
+        text = element_text(size=13, family="LM Roman 10")
+        )
+
+pict1 = grid.arrange(reg, loc, nrow = 1)
+
+ggsave(plot = pict1, 'pict5.jpeg', width = 10, height = 7, scale = 1, dpi = 600, units = "in")
+
+```
+
+```{r}
+#### Figure 2 ####
+
+world_map <- map_data("world")
+
+map.world_joined2 <- left_join(world_map, df2, by = c('region' = 'country_name'))
+
+map2_1 <- ggplot() +
+  geom_polygon(data = map.world_joined2, aes(x = long, y = lat, group = group, fill = decentralization), color = "black") +
+  scale_fill_gradientn(
+    colors = c("#fde725", "#5ec962", "#21918c", "#3b528b", "#440154"),
+    values = scales::rescale(c(0, 1, 2, 3, 4)),
+    limits = c(0, 4),
+    guide = "colorbar",
+    name = "Number of reforms"
+  ) +
+  ggtitle("Decentralization reforms")+
+  #labs(caption = "(NAs are grayed out)") +
+  theme_light()
+
+
+ggsave("map2_1.png", height = 5, width = 8, units = "in")
+
+map2_2 <- ggplot() +
+  geom_polygon(data = map.world_joined2, aes(x = long, y = lat, group = group, fill = centralization), color = "black") +
+  scale_fill_gradientn(
+    colors = c("#fde725", "#5ec962", "#21918c"),
+    values = scales::rescale(c(0, 1, 2)),
+    limits = c(0, 2),
+    name = "",
+    breaks = c(0, 1, 2)
+  ) +
+  ggtitle("Centralization reforms")+
+  #labs(caption = "NAs are grayed out") +
+  theme_light() +
+  theme(legend.position = "none")
+
+
+ggsave("map2_2.png", height = 5, width = 8, units = "in")
+
+# Variation in the number of cases of centralization\nat the regional and local levels: 1950 -- 2013 (131 countries)
+
+combinedplot <- map2_2+map2_1
+ggsave("combinedplot.png", plot = combinedplot, height = 6, width = 15, units = "in")
+```
+
